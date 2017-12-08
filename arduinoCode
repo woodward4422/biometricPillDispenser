@@ -1,0 +1,65 @@
+/************************************************************************************
+*******
+Source File:
+Description: Code for Pill Dispenser
+History:
+Version Date Author Description
+------- ---------- --------------- ------------------------------------
+0.1.0 01/20/2017 Noah Woodward, Program that turns a Stepper Motor when a
+Valid Fingerprint is Identified
+Adafruit Inc.
+Copyright (C) 2017 Noah Woodward and Adafruit Industries Open Source code . All
+Rights Reserved.
+Special Thanks to Adafruit's Open Source Code which provided me with the knowledge,
+methods,
+necessary variables, code formatting for both the motor shield and the Fingerprint
+sensor
+independently, this program would not be possible without their reference programs.
+
+*************************************************************************************
+******/
+//included libraries used in the program
+#include <Adafruit_Fingerprint.h>
+#include <SoftwareSerial.h>
+#include <Wire.h>
+#include <Adafruit_MotorShield.h>
+#include"utility/Adafruit_MS_PWMServoDriver.h"
+//assigns objects used and will assign values to hardware components, and assigns
+motor shield to 200 step motor at a rounded 2 degree step
+int getFingerprintIDez();
+Adafruit_MotorShield AFMS = Adafruit_MotorShield();
+Adafruit_StepperMotor *motor = AFMS.getStepper(200, 2);
+SoftwareSerial mySerial(2, 3);
+//assigns the fingerprint sensor to output and input pins 2 and 3
+Adafruit_Fingerprint sensor = Adafruit_Fingerprint(&mySerial);
+void setup()
+{
+//sets the baud rate
+Serial.begin(9600);
+//begins both the motor shield and the sensor.
+
+AFMS.begin();
+sensor.begin(57600);
+
+}
+void loop()
+{
+//continuously runs to search for a valid fingerprint with a short delay between
+each successive run of the program
+fingerMethod();
+delay(50);
+}
+
+//code that retrieves the image of the fingerprint with a few test if statements
+that return -1 if there is an issue with the authentication process
+int fingerMethod() {
+uint8_t p = sensor.getImage();
+if (p != FINGERPRINT_OK) return -1;
+p = sensor.image2Tz();
+if (p != FINGERPRINT_OK) return -1;
+p = sensor.fingerFastSearch();
+if (p != FINGERPRINT_OK) return -1;
+//code that specifically turns the motor 10 steps, or 18 degrees and returns the
+fingerprint ID
+motor->step(18, BACKWARD, DOUBLE);
+return sensor.fingerID;
